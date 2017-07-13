@@ -5,7 +5,6 @@ import qualified Data.ByteString.Lazy as L(readFile)
 import qualified Data.Foldable as F(forM_)
 import System.Environment(getArgs,getProgName)
 import qualified Data.ByteString.Lazy.UTF8 as U(toString)
-import qualified System.IO.UTF8 as U(putStrLn)
 
 import Text.ProtocolBuffers(messageGet,utf8,isSet,getVal)
 
@@ -14,16 +13,16 @@ import AddressBookProtos.Person as Person(id,name,email,phone)
 import AddressBookProtos.Person.PhoneNumber(number,type')
 import AddressBookProtos.Person.PhoneType(PhoneType(MOBILE,HOME,WORK))
 
-outLn = U.putStrLn . U.toString . utf8
+outLn = putStrLn . show . U.toString . utf8
 
 listPeople address_book =
   F.forM_ (person address_book) $ \person -> do
-    putStr "Person ID: " >> print (Person.id person)
-    putStr "  Name: " >> outLn (name person)
+    putStrLn "Person ID: " >> print (Person.id person)
+    putStrLn "  Name: " >> outLn (name person)
     when (isSet person email) $ do
-      putStr "  E-mail address: " >> outLn (getVal person email)
+      putStrLn "  E-mail address: " >> outLn (getVal person email)
     F.forM_ (phone person) $ \phone_number -> do
-      putStr $ case getVal phone_number type' of
+      putStrLn $ case getVal phone_number type' of
                  MOBILE -> "  Mobile phone #: "
                  HOME   -> "  Home phone #: "
                  WORK   -> "  Work phone #: "

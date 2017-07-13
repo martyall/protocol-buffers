@@ -1,16 +1,17 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Main where
 
 import Control.Monad
-import Text.ProtocolBuffers(messageGet,messagePut,Utf8(..),defaultValue)
+import Text.ProtocolBuffers(messageGet,messagePut,Utf8(..),defaultValue, utf8)
 import Text.ProtocolBuffers.Header(Utf8(..))
+import Data.String.UTF8 (fromString, UTF8(..), null)
 import qualified Data.ByteString.Lazy as L(readFile,writeFile,null)
-import System
+import qualified Data.ByteString.Lazy.Char8 as C8L
+import System.Environment
 import Data.Char
 import Data.Maybe(fromMaybe)
-import qualified Data.ByteString.Lazy.UTF8 as U(fromString)
-import qualified System.IO.UTF8 as U(getLine,putStr)
 import Data.Sequence((|>),empty)
-
 import AddressBookProtos.AddressBook
 import AddressBookProtos.Person as Person
 import AddressBookProtos.Person.PhoneNumber
@@ -30,12 +31,12 @@ main = do
                Right (address_book,_) -> promptForAddress address_book
   seq newBook $ L.writeFile file (messagePut newBook)
 
-inStr prompt = U.putStr prompt >> getLine
-inUtf8 prompt = inStr prompt >>= return . Utf8 . U.fromString
+inStr prompt = putStrLn prompt >> getLine
+inUtf8 prompt = inStr prompt >>= return . Utf8 . C8L.pack
 
 promptForAddress :: AddressBook -> IO AddressBook
 promptForAddress address_book = do
-  p <- liftM3 (\i n e -> defaultValue { Person.id = i, name = n, email = if L.null (utf8 e) then Nothing else Just e})
+  p <- liftM3 (\i n e -> defaultValue { Person.id = i, name = n, email = if (L.null . utf8 $ e) then Nothing else Just e})
               (fmap read  $ inStr "Enter person ID number: ")
               (inUtf8 "Enter name: ")
               (inUtf8 "Enter email address (blank for none): ")
